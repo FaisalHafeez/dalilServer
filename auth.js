@@ -9,12 +9,12 @@ const authentication = (req, res, next) => {
   }
   const auth = req.headers.authorization;
   // const payload = jwt.verify(auth.split(` `)[1], process.env.jwtSecret);
-  res.locals.id = payload._id;
+  // res.locals.id = payload._id;
 
   // Authentication
-  if (!auth.startsWith(`Bearer `) || !payload) {
+  // if (!auth.startsWith(`Bearer `) || !payload) {
     // return res.status(401).json({ msg: `Authorization credentials not valid` });
-  }
+  // }
 
   //What is this next function here
   next();
