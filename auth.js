@@ -8,13 +8,13 @@ const authentication = (req, res, next) => {
     return res.status(401).json({ msg: `Not Authorized` });
   }
   const auth = req.headers.authorization;
-  // const payload = jwt.verify(auth.split(` `)[1], process.env.jwtSecret);
-  // res.locals.id = payload._id;
+  const payload = jwt.verify(auth.split(` `)[1], process.env.jwtSecret);
+  res.locals.id = payload._id;
 
   // Authentication
-  // if (!auth.startsWith(`Bearer `) || !payload) {
-    // return res.status(401).json({ msg: `Authorization credentials not valid` });
-  // }
+  if (!auth.startsWith(`Bearer `) || !payload) {
+    return res.status(401).json({ msg: `Authorization credentials not valid` });
+  }
 
   //What is this next function here
   next();
