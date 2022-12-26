@@ -154,7 +154,7 @@ const allSchedule = async (req, res) => {
     const toDate = req.query.toDate;
     const doctorId = req.query.doctorId;
     const medicalCenterIdQuery = req.query.medicalCenterId;
-    // const sortBy = req.query.sortBy;
+    const sortBy = req.query.sortBy;
     const specialtyQuery = req.query.specialty;
     const scheduleIdquery = req.query.starting_after_object;
     const timeslot = req.query.timeslot;
@@ -209,43 +209,46 @@ const allSchedule = async (req, res) => {
         hasMore: document.length > documents.length ? true : false,
       });
     }
-    // if (sortBy) {
-    //   if (sortBy === doctorId) {
-    //     const alldocument = await schedule
-    //       .find({})
-    //       .sort({ "doctor.doctorId": 1 });
-    //     if (alldocument.length === 0) {
-    //       return res.status(404).json({ msg: `schedules not found` });
-    //     }
-    //     const documents = await schedule
-    //       .find({})
-    //       .limit(limit ? limit : 0)
-    //       .sort({ "doctor.doctorId": 1 });
+    if (sortBy) {
+      if (sortBy === "doctorId") {
+        const alldocument = await schedule
+          .find({})
+          .sort({ "doctor.doctorId": 1 });
+        if (alldocument.length === 0) {
+          return res.status(404).json({ msg: `schedules not found` });
+        }
+        const documents = await schedule
+          .find({})
+          .limit(limit ? limit : 0)
+          .sort({ "doctor.doctorId": 1 });
 
-    //     return res.status(200).json({
-    //       documents,
-    //       objectCount: alldocument.length,
-    //       hasMore: alldocument.length > documents.length ? true : false,
-    //     });
-    //   }
-    //   if (sortBy === medicalCenterId) {
-    //     const alldocument = await schedule
-    //       .find({})
-    //       .sort({ "medicalcenter.medicalCenterId": 1 });
-    //     if (alldocument.length === 0) {
-    //       return res.status(404).json({ msg: `schedules not found` });
-    //     }
-    //     const documents = await schedule
-    //       .find({})
-    //       .limit(limit ? limit : 0)
-    //       .sort({ "medicalcenter.medicalCenterId": 1 });
-    //     return res.status(200).json({
-    //       documents,
-    //       objectCount: alldocument.length,
-    //       hasMore: alldocument.length > documents.length ? true : false,
-    //     });
-    //   }
-    // }
+        return res.status(200).json({
+          documents,
+          objectCount: alldocument.length,
+          hasMore: alldocument.length > documents.length ? true : false,
+        });
+      } else if (sortBy === "medicalCenterId") {
+        const alldocument = await schedule
+          .find({})
+          .sort({ "medicalcenter.medicalCenterId": 1 });
+        if (alldocument.length === 0) {
+          return res.status(404).json({ msg: `schedules not found` });
+        }
+        const documents = await schedule
+          .find({})
+          .limit(limit ? limit : 0)
+          .sort({ "medicalcenter.medicalCenterId": 1 });
+        return res.status(200).json({
+          documents,
+          objectCount: alldocument.length,
+          hasMore: alldocument.length > documents.length ? true : false,
+        });
+      } else {
+        return res
+          .status(404)
+          .json({ msg: `Check your inputted sortBy value` });
+      }
+    }
     if (specialtyQuery) {
       const alldocument = await schedule.find({
         "doctor.specialty": specialtyQuery,

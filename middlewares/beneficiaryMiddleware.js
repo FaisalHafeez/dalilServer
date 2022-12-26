@@ -68,11 +68,11 @@ const getBeneficiaries = async (req, res) => {
     if (!beneficiaryIdQuery) {
       beneficiaryIdQuery = `SSD-0`;
     }
-    if (!beneficiaryIdQuery.startsWith(`SSD-`)) {
-      return res.status(404).json({
-        msg: `beneficiary not found, check your starting_after_object input`,
-      });
-    }
+    // if (!beneficiaryIdQuery.startsWith(`SSD-`)) {
+    //   return res.status(404).json({
+    //     msg: `beneficiary not found, check your starting_after_object input`,
+    //   });
+    // }
 
     let beneficiaryId = Number(beneficiaryIdQuery.split(`-`)[1]);
     const insurancePolicy = insurancePolicyId;

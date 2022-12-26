@@ -296,7 +296,7 @@ const allAppointments = async (req, res) => {
     const rejected = req.query.rejected;
     const completed = req.query.completed;
     const pending = req.query.pending;
-    const medicalCenterId = req.query.medicalcenterId;
+    const medicalCenterId = req.query.medicalCenterId;
     const starting_after_object = req.query.starting_after_object;
     const limitQuery = req.query.limit;
     const fromDate = req.query.fromDate;
