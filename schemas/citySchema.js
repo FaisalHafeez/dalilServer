@@ -2,7 +2,7 @@ const mongoose = require(`mongoose`);
 
 const cityNameSchema = mongoose.Schema({
   cityName: {
-    type: Array,
+    type: String,
     required: [true, `please provide valid city name`],
   },
 });

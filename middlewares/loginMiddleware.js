@@ -55,12 +55,29 @@ const Login = async (req, res) => {
             as: `beneficiary`,
           },
         },
+        {$unwind: '$beneficiary'},
+        {$project: { 
+          __v: 0,
+          sd: 0,
+          _id: 0,
+          password: 0,
+          "beneficiary._id": 0,
+          "beneficiary.__v": 0,
+          "beneficiary.sd": 0
+        }},
+        
+        
       ])
       .exec();
-    response.forEach((each) => {
-      delete each.sd;
-    });
-    res.status(200).json({ ...response[0], token: `Bearer ${token}` });
+    
+    const responseBody = {
+      statusCode: "200",
+      message: "good",
+      token: `Bearer ${token}`,
+      data: response[0]
+    }
+
+    res.status(200).json({...responseBody });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: error.message });

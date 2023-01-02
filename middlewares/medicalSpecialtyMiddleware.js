@@ -14,11 +14,21 @@ const createmedicalSpecialty = async (req, res) => {
 // api for getting medicalSpecialty
 const allmedicalSpecialty = async (req, res) => {
   try {
-    const document = await specialtyName.find({}).lean();
-    if (document.length === 0) {
-      return res.status(404).json({ msg: `medicalSpecialties not found` });
+    const documents = await specialtyName.find({}, {specialtyName:1, _id:0}).lean();
+    if (documents.length === 0) {
+      return res.status(404).json({ statusCode: "404", message: `Empty medical specialty list` });
     }
-    res.status(200).json(document);
+
+    const responseBody = {
+      codeStatus: "200",
+      message: "good",
+      data: {
+        objectCount: documents.length,
+        objectArray: documents
+      }
+    };
+
+    res.status(200).json({...responseBody});
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: error.message });

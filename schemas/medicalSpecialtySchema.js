@@ -2,7 +2,7 @@ const mongoose = require(`mongoose`);
 
 const medicalSpecialtySchema = mongoose.Schema({
   specialtyName: {
-    type: Array,
+    type: String,
     required: [true, `please provide valid specialty name`],
   },
 });

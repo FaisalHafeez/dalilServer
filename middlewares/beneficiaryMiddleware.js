@@ -146,17 +146,25 @@ const getBeneficiaries = async (req, res) => {
 // api for getting a single Beneficiary
 const singleBeneficiary = async (req, res) => {
   try {
-    const document = await beneficiarys.find(req.params).lean();
-    if (document.length === 0) {
+    const document = await beneficiarys.findOne(req.params).lean();
+    
+    if (!document) {
       return res.status(404).json({ msg: `beneficiary not found` });
     }
-    document.forEach((each) => {
-      delete each.sd;
-    });
-    if (res.locals.user.userId !== document[0].account.userId) {
+
+    if (res.locals.user.userId !== document.account.userId) {
       return res.status(401).json({ msg: `Not Authorized` });
     }
-    res.status(200).json(document);
+
+    document.birthdate = document.birthdate.toLocaleDateString("en-GB");
+    
+    const responseBody = {
+      codeStatus: "200",
+      message: "good",
+      data: document
+    };
+
+    res.status(200).json({... responseBody});
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: error.message });

@@ -16,7 +16,7 @@ const beneficiarySchema = mongoose.Schema({
     required: [true, `please provide valid lastName`],
   },
   birthdate: {
-    type: String,
+    type: Date,
     required: [true, `please provide valid birthdate`],
   },
   phoneNumber: {
@@ -29,7 +29,7 @@ const beneficiarySchema = mongoose.Schema({
   },
   familyMembers: {
     type: Array,
-    required: [true, `please provide valid family member `],
+    required: [false, `please provide valid family member `],
   },
   insurancePolicyId: {
     type: String,

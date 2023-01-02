@@ -19,7 +19,7 @@ const Server = async () => {
     // mongoose.set("strictQuery", true);
     console.log(`connected to DB`);
     // connecting to port
-    app.listen(port, console.log(`Listening to user request`));
+    app.listen(port, console.log(`Listening to user request on port ${port}`));
     // importing  routes
     const router = require(`./routes/routes`);
     // using imported routes
