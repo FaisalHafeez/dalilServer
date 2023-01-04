@@ -154,7 +154,7 @@ const allSchedule = async (req, res) => {
     const toDateQP = req.query.toDate;
     const doctorIdQP = req.query.doctorId;
     const medicalCenterIdQP = req.query.medicalCenterId;
-    const sortBy = req.query.sortBy;
+    const sortByQP = req.query.sortBy;
     const specialtyQP = req.query.specialty;
     const startAfterObjectQP = req.query.starting_after_object;
     const timeslotQP = req.query.timeSlot;
@@ -171,39 +171,73 @@ const allSchedule = async (req, res) => {
     let query = {};
     query['$and']=[];
 
+    if(doctorIdQP){
+      // console.log(cityQP);
+      query["$and"].push({"doctorId": {$eq: doctorIdQP}});
+    }
+
+    if(medicalCenterIdQP){
+      // console.log(cityQP);
+      query["$and"].push({"medicalCenterId": {$eq: medicalCenterIdQP}});
+    }
+
     if(cityQP){
-      console.log(cityQP);
+      // console.log(cityQP);
       query["$and"].push({"medicalcenter.city": {$eq: cityQP}});
     }
 
     if(timeslotQP){
-      console.log(timeslotQP);
+      // console.log(timeslotQP);
       query["$and"].push({timeslot: {$eq: timeslotQP}});
     }
 
     if(specialtyQP){
-      console.log(specialtyQP);
+      // console.log(specialtyQP);
       query["$and"].push({"doctor.specialty": {$eq: specialtyQP}});
     }
 
-    if(fromDateQP){
-      console.log(fromDateQP);
-      query["$and"].push({timeslot: {$eq: timeslotQP}});
-    }
-
     if(timeslotQP){
-      console.log(timeslotQP);
+      // console.log(timeslotQP);
       query["$and"].push({timeslot: {$eq: timeslotQP}});
     }
 
+    let sortByQP_ = {}
+    if(sortByQP === "doctor"){
+      // console.log(sortByQP);
+      sortByQP_ = {"doctorId": 1, "scheduleId": 1};
+
+      if (startAfterObjectQP){
+        query["$and"].push({"doctorId": {$gt: startAfterObjectQP}});
+      }
+    }else if(sortByQP === "medicalCenter"){
+      // console.log(sortByQP);
+      sortByQP_ = {"medicalCenterId": 1, "scheduleId": 1};
+      if (startAfterObjectQP){
+        query["$and"].push({"medicalCenterId": {$gt: startAfterObjectQP}});
+      }
+    }else{
+      sortByQP_ = {"scheduleId": 1};
+      if (startAfterObjectQP){
+        query["$and"].push({"scheduleId": {$gt: startAfterObjectQP}});
+      }
+    }
+
+    if(toDateQP){
+      // console.log(toDateQP);
+      query["$and"].push({startDate: {$lte: toDateQP}});      
+    }
+
+    if(fromDateQP){
+      // console.log(fromDateQP);
+      query["$and"].push({endDate: {$gte: fromDateQP}});      
+    }
     
     let objectCount = 0;
-
 
     if (query["$and"].length === 0) { 
       documents = await schedule.find({},
         // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
-        ).sort( {"_id": 1} );
+        ).sort( sortByQP_ ).limit(limitQP).lean();
 
       objectCount = await schedule.find({},
         // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
@@ -212,7 +246,7 @@ const allSchedule = async (req, res) => {
     }else {
       documents = await schedule.find(query,
         // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
-        ).sort( { "_id": 1} );
+        ).sort( sortByQP_ ).limit(limitQP).lean();
 
         objectCount = await schedule.find(query,
           // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
@@ -419,6 +453,15 @@ const allSchedule = async (req, res) => {
     // }
     // const documents = await schedule.find({}).limit(limit ? limit : 0);
     
+    // console.log(documents[1].startDate.toISOString().split('T')[0]);
+
+    documents.forEach((document) => {      
+      document.startDate =  document.startDate.toISOString().split('T')[0];
+      document.endDate =  document.endDate.toISOString().split('T')[0];
+      document.dateCreated =  document.dateCreated.toISOString().split('T')[0];
+    });
+
+
     const responseBody = {
       codeStatus: "200",
       message: "good",
