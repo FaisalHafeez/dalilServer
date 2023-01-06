@@ -33,28 +33,30 @@ let toDateQP = new Date ("2024-12-01")
 let limitQP 
 let limitDF = 30
 let startAfterObjectQP = "DOC-1"
-
+let beneficiaryIdP = "BEN-1"
 
 let query = {};
 query['$and']=[];
+
+query["$and"].push({"beneficiaryId": {$eq: beneficiaryIdP}});
 
  
 let objectCount = 0;
 
 
 if (query['$and'].length === 0) { 
-    results = db.schedules.find({},
+    results = db.beneficiaries.find({},
     // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
     ).sort( {"_id": 1} );
 
-    objectCount = results.count();
+    // objectCount = results.count();
     
 }else {
-    results = db.schedules.find(query,
-    // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
-    ).sort( { "_id": 1} );
+    results = db.beneficiaries.findOne(query,
+    { beneficiaryId: 1, familyMembers: "$familyMembers", _id: 0 } 
+    )
 
-    objectCount = results.count();
+    // objectCount = results.count(); ,"$familyMembers.medicalFiles"
 }
 
 

@@ -6,6 +6,15 @@ const router = express.Router();
 // importing users middleware
 const { createUsers, getUsers } = require(`../middlewares/userMiddleware`);
 
+
+// importing medicalFiles middleware
+const {
+  singleMedicalFiles
+} = require(`../middlewares/medicalFilesMiddleware`);
+
+
+
+
 // importing beneficiary middleware
 const {
   createBeneficiary,
@@ -72,6 +81,11 @@ router
   .route(`/v1/beneficiaries`)
   .post(authentication, createBeneficiary)
   .get(authentication, getBeneficiaries);
+
+// routes for beneficiary's medicalFiles
+router
+  .route(`/v1/beneficiaries/:beneficiaryId/medicalFiles`)
+  .get(authentication, cookieVerification, singleMedicalFiles);
 
 // routes for single beneficiary and updating it
 router
