@@ -325,6 +325,8 @@ const allSchedule = async (req, res) => {
 
         documents.forEach((document) => {
           if (document.scheduleId === lastDocument[0].scheduleId) hasMore = false;
+          document.doctorObject = document.doctorObject[0]
+          document.medicalCenterObject = document.medicalCenterObject[0]
         });
 
         if (startAfterObjectQP){

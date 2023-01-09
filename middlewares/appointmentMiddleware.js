@@ -2,7 +2,8 @@
 const { find } = require("../schemas/appointmentSchema");
 const appointment = require(`../schemas/appointmentSchema`);
 // importing dependencies
-
+const mongo = require('mongodb');
+const mongoose = require(`mongoose`);
 // api for creating appointment
 const createAppointment = async (req, res) => {
   try {
@@ -13,19 +14,17 @@ const createAppointment = async (req, res) => {
     if (req.params.userId !== userId) {
       return res.status(401).json({ msg: `Not Authorized` });
     }
-    if (doc.length === 0) {
-      const document = await appointment.create({
-        ...req.body,
-        userId: req.params.userId,
-        timeslot: `pending`,
-        price: `pending`,
-        appointmentStatus: `pending`,
-        appointmentId: `AP-${1}`,
-        aid: 1,
-        dateCreated: Date(),
-        dateCreatedMilliSeconds: new Date().valueOf(),
-      });
-      const test = await appointment
+
+
+    const document = await appointment.create({
+      ...req.body,
+      userId: req.params.userId,
+      appointmentStatus: `pending`,
+      appointmentId: new mongoose.Types.ObjectId(),
+      dateCreated: Date(),
+    });   
+
+    const aggDocument = await appointment
         .aggregate([
           {
             $match: { _id: document._id },
@@ -35,68 +34,133 @@ const createAppointment = async (req, res) => {
               from: `medicalcenters`,
               localField: `medicalCenterId`,
               foreignField: `medicalCenterId`,
-              as: `medicalcenter`,
-            },
+              as: `medicalCenterObject`,
+            }
           },
-          {
-            $lookup: {
-              from: `doctors`,
-              localField: `doctorId`,
-              foreignField: `doctorId`,
-              as: `doctor`,
-            },
-          },
-        ])
-        .exec();
-      const newDoc = await appointment.findOneAndReplace(
-        { _id: document._id },
-        test[0]
-      );
-      console.log(newDoc);
-      res.status(200).json(test[0]);
-    } else {
-      const lastappointmentDoc = doc[doc.length - 1];
-      const idNumber = Number(lastappointmentDoc.appointmentId.split(`-`)[1]);
-      const document = await appointment.create({
-        ...req.body,
-        userId: req.params.userId,
-        timeslot: `pending`,
-        price: `pending`,
-        appointmentStatus: `pending`,
-        appointmentId: `AP-${idNumber + 1}`,
-        aid: idNumber + 1,
-        dateCreated: Date(),
-        dateCreatedMilliSeconds: new Date().valueOf(),
-      });
-      const test = await appointment
-        .aggregate([
-          {
-            $match: { _id: document._id },
-          },
-          {
-            $lookup: {
-              from: `medicalcenters`,
-              localField: `medicalCenterId`,
-              foreignField: `medicalCenterId`,
-              as: `medicalcenter`,
-            },
-          },
-          {
-            $lookup: {
-              from: `doctors`,
-              localField: `doctorId`,
-              foreignField: `doctorId`,
-              as: `doctor`,
-            },
-          },
-        ])
-        .exec();
-      const newDoc = await appointment.findOneAndReplace(
-        { _id: document._id },
-        test[0]
-      );
-      res.status(200).json(test[0]);
-    }
+          // {
+          //   $lookup: {
+          //     from: `doctors`,
+          //     localField: `doctorId`,
+          //     foreignField: `doctorId`,
+          //     as: `doctorObject`,
+          //   }
+          // }
+          // {
+          //   $lookup: {
+          //     from: `schedules`,
+          //     localField: `scheduleId`,
+          //     foreignField: `scheduleId`,
+          //     as: `scheduleObject`,
+          //   }
+          // }
+        ]);
+
+        aggDocument.forEach((aggDocument) => {
+          delete aggDocument._id;
+          delete aggDocument.appointmentId;
+          aggDocument.medicalCenterObject = aggDocument.medicalCenterObject[0];
+          delete aggDocument.medicalCenterObject._id;
+          delete aggDocument.medicalCenterObject.created;
+          delete aggDocument.medicalCenterObject.updated;
+          // aggDocument.doctorObject = aggDocument.doctorObject[0];
+          // aggDocument.scheduleObject = aggDocument.scheduleObject[0];
+
+        });
+
+    console.log(aggDocument[0]);
+    const newDocument = await appointment.findOneAndReplace(
+      { _id: document._id },
+      aggDocument[0]
+    );
+
+
+    return res.status(200).json({
+      document
+    });
+    // if (doc.length === 0) {
+    //   const document = await appointment.create({
+    //     ...req.body,
+    //     userId: req.params.userId,
+    //     timeslot: `pending`,
+    //     price: `pending`,
+    //     appointmentStatus: `pending`,
+    //     appointmentId: `AP-${1}`,
+    //     aid: 1,
+    //     dateCreated: Date(),
+    //     dateCreatedMilliSeconds: new Date().valueOf(),
+    //   });
+    //   const test = await appointment
+    //     .aggregate([
+    //       {
+    //         $match: { _id: document._id },
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: `medicalcenters`,
+    //           localField: `medicalCenterId`,
+    //           foreignField: `medicalCenterId`,
+    //           as: `medicalcenter`,
+    //         },
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: `doctors`,
+    //           localField: `doctorId`,
+    //           foreignField: `doctorId`,
+    //           as: `doctor`,
+    //         },
+    //       },
+    //     ])
+    //     .exec();
+    //   const newDoc = await appointment.findOneAndReplace(
+    //     { _id: document._id },
+    //     test[0]
+    //   );
+    //   console.log(newDoc);
+    //   res.status(200).json(test[0]);
+    // } else {
+    //   const lastappointmentDoc = doc[doc.length - 1];
+    //   const idNumber = Number(lastappointmentDoc.appointmentId.split(`-`)[1]);
+    //   const document = await appointment.create({
+    //     ...req.body,
+    //     userId: req.params.userId,
+    //     timeslot: `pending`,
+    //     price: `pending`,
+    //     appointmentStatus: `pending`,
+    //     appointmentId: `AP-${idNumber + 1}`,
+    //     aid: idNumber + 1,
+    //     dateCreated: Date(),
+    //     dateCreatedMilliSeconds: new Date().valueOf(),
+    //   });
+    //   const test = await appointment
+    //     .aggregate([
+    //       {
+    //         $match: { _id: document._id },
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: `medicalcenters`,
+    //           localField: `medicalCenterId`,
+    //           foreignField: `medicalCenterId`,
+    //           as: `medicalcenter`,
+    //         },
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: `doctors`,
+    //           localField: `doctorId`,
+    //           foreignField: `doctorId`,
+    //           as: `doctor`,
+    //         },
+    //       },
+    //     ])
+    //     .exec();
+    //   const newDoc = await appointment.findOneAndReplace(
+    //     { _id: document._id },
+    //     test[0]
+    //   );
+    //   res.status(200).json(test[0]);
+    // }
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: error.message });
