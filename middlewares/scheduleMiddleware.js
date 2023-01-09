@@ -167,7 +167,7 @@ const allSchedule = async (req, res) => {
       }
     }
 
-    
+    let hasMore = true;
     let query = {};
     query['$and']=[];
 
@@ -183,7 +183,7 @@ const allSchedule = async (req, res) => {
 
     if(cityQP){
       // console.log(cityQP);
-      query["$and"].push({"medicalcenter.city": {$eq: cityQP}});
+      query["$and"].push({"medicalCenterObject.city": {$eq: cityQP}});
     }
 
     if(timeslotQP){
@@ -193,12 +193,17 @@ const allSchedule = async (req, res) => {
 
     if(specialtyQP){
       // console.log(specialtyQP);
-      query["$and"].push({"doctor.specialty": {$eq: specialtyQP}});
+      query["$and"].push({"doctorObject.specialty": {$eq: specialtyQP}});
     }
 
-    if(timeslotQP){
-      // console.log(timeslotQP);
-      query["$and"].push({timeslot: {$eq: timeslotQP}});
+    if(toDateQP){
+      // console.log(toDateQP);
+      query["$and"].push({startDate: {$lte: toDateQP}});      
+    }
+
+    if(fromDateQP){
+      // console.log(fromDateQP);
+      query["$and"].push({endDate: {$gte: fromDateQP}});      
     }
 
     let sortByQP_ = {}
@@ -221,16 +226,6 @@ const allSchedule = async (req, res) => {
         query["$and"].push({"scheduleId": {$gt: startAfterObjectQP}});
       }
     }
-
-    if(toDateQP){
-      // console.log(toDateQP);
-      query["$and"].push({startDate: {$lte: toDateQP}});      
-    }
-
-    if(fromDateQP){
-      // console.log(fromDateQP);
-      query["$and"].push({endDate: {$gte: fromDateQP}});      
-    }
     
     let objectCount = 0;
 
@@ -238,19 +233,137 @@ const allSchedule = async (req, res) => {
       documents = await schedule.find({},
         // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
         ).sort( sortByQP_ ).limit(limitQP).lean();
+        
 
       objectCount = await schedule.find({},
         // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
         ).countDocuments();
         
     }else {
-      documents = await schedule.find(query,
-        // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
-        ).sort( sortByQP_ ).limit(limitQP).lean();
+      // documents = await schedule.find(query,
+      //   // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
+      //   ).sort( sortByQP_ ).limit(limitQP).lean();
 
-        objectCount = await schedule.find(query,
-          // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
-          ).countDocuments();
+      // documents = await schedule.find({},
+        // { scheduleId: 1, "doctor.doctorId": 1,"medicalcenter.medicalCenterId": 1, _id: 1 } 
+        // ).sort( sortByQP_ ).limit(limitQP).lean();
+        
+        documents = await schedule.aggregate([
+          {
+            $lookup: {
+              from: `medicalcenters`,
+              localField: `medicalCenterId`,
+              foreignField: `medicalCenterId`,
+              as: `medicalCenterObject`,
+            },
+          },
+          {
+            $lookup: {
+              from: `doctors`,
+              localField: `doctorId`,
+              foreignField: `doctorId`,
+              as: `doctorObject`,
+            },
+          },
+          { $match: { 
+            $and: query["$and"]
+           }
+          },
+          // {
+          //   $group: {
+          //     _id: '$age',
+          //     count: { $sum: 1 }
+          //   }
+          // }
+          {
+            $sort: sortByQP_
+          },
+          {
+            $limit: limitQP
+          }
+        ]);        
+
+        for (const key in sortByQP_) {
+          sortByQP_[key] = sortByQP_[key] *-1;
+          // console.log(`obj.${key} = ${sortByQP_[key]}`);
+        }
+
+        lastDocument = await schedule.aggregate([
+          {
+            $lookup: {
+              from: `medicalcenters`,
+              localField: `medicalCenterId`,
+              foreignField: `medicalCenterId`,
+              as: `medicalCenterObject`,
+            },
+          },
+          {
+            $lookup: {
+              from: `doctors`,
+              localField: `doctorId`,
+              foreignField: `doctorId`,
+              as: `doctorObject`,
+            },
+          },
+          { $match: { 
+            $and: query["$and"]
+           }
+          },
+          // {
+          //   $group: {
+          //     _id: '$age',
+          //     count: { $sum: 1 }
+          //   }
+          // }
+          {
+            $sort: sortByQP_
+          },
+          {
+            $limit: limitQP
+          }
+        ]);
+
+        documents.forEach((document) => {
+          if (document.scheduleId === lastDocument[0].scheduleId) hasMore = false;
+        });
+
+        if (startAfterObjectQP){
+          query["$and"].pop();
+        }
+        objectCount = await schedule.aggregate([
+          {
+            $lookup: {
+              from: `medicalcenters`,
+              localField: `medicalCenterId`,
+              foreignField: `medicalCenterId`,
+              as: `medicalCenterObject`,
+            },
+          },
+          {
+            $lookup: {
+              from: `doctors`,
+              localField: `doctorId`,
+              foreignField: `doctorId`,
+              as: `doctorObject`,
+            },
+          },
+          { $match: { 
+            $and: query["$and"]
+           }
+          },
+          // {
+          //   $group: {
+          //     _id: '$age',
+          //     count: { $sum: 1 }
+          //   }
+          // }
+          {
+            $sort: sortByQP_
+          },
+          {
+            $count: "objectCount"
+          }
+        ]);
     }
     
     // if (toDate) {
@@ -455,19 +568,19 @@ const allSchedule = async (req, res) => {
     
     // console.log(documents[1].startDate.toISOString().split('T')[0]);
 
-    documents.forEach((document) => {      
-      document.startDate =  document.startDate.toISOString().split('T')[0];
-      document.endDate =  document.endDate.toISOString().split('T')[0];
-      document.dateCreated =  document.dateCreated.toISOString().split('T')[0];
-    });
+    // documents.forEach((document) => {      
+    //   document.startDate =  document.startDate.toISOString().split('T')[0];
+    //   document.endDate =  document.endDate.toISOString().split('T')[0];
+    //   document.dateCreated =  document.dateCreated.toISOString().split('T')[0];
+    // });
 
 
     const responseBody = {
       codeStatus: "200",
       message: "good",
       data: {
-        objectCount: objectCount,
-        hasMore: false,
+        objectCount: objectCount[0].objectCount,
+        hasMore,
         objectArray: documents
       }
     };

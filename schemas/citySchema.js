@@ -7,6 +7,6 @@ const cityNameSchema = mongoose.Schema({
   },
 });
 
-const cityName = mongoose.model(`city`, cityNameSchema);
+const cityName = mongoose.model(`cities`, cityNameSchema);
 
 module.exports = cityName;

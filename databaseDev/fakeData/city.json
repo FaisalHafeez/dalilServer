@@ -1,0 +1,8 @@
+[{"_id":{"$oid":"63b9e650f03239d39b000e02"},"cityName":"Tripoli","districts":[{"name":"AYED"},{"name":"FLLI"},{"name":"KLSF"},{"name":"HABD"},{"name":"VABB"},{"name":"WBGU"},{"name":"ROYN"},{"name":"PAFS"},{"name":"LGNX"},{"name":"YTHD"}]},
+{"_id":{"$oid":"63b9e650f03239343e000056"},"cityName":"Misurata"},
+{"_id":{"$oid":"63b9e650f032396a8d000056"},"cityName":"Benghazi","districts":[{"name":"LHSM"},{"name":"SNAI"},{"name":"NGFU"},{"name":"PAVE"}]},
+{"_id":{"$oid":"63b9e650f032394cbd000056"},"cityName":"Sirt","districts":[{"name":"1B1"},{"name":"VTBS"}]},
+{"_id":{"$oid":"63b9e650f03239cf1b000056"},"cityName":"Zliten","districts":[{"name":"LIAP"},{"name":"ENNO"},{"name":"YBAR"},{"name":"SKRH"},{"name":"UUWR"},{"name":"LMMG"},{"name":"VDRK"},{"name":"FYGF"},{"name":"PLFA"}]},
+{"_id":{"$oid":"63b9e650f03239a8ad000e01"},"cityName":"Zawia","districts":[{"name":"KHUF"},{"name":"CYBE"},{"name":"VTSK"},{"name":"YSCR"},{"name":"OETB"},{"name":"KIMT"}]},
+{"_id":{"$oid":"63b9e650f03239554c000e01"},"cityName":"Yufrin","districts":[{"name":"SVSB"},{"name":"KBLU"},{"name":"HTMT"},{"name":"VAKJ"},{"name":"WBKN"},{"name":"HANJ"},{"name":"KVKS"},{"name":"FAKN"}]},
+{"_id":{"$oid":"63b9e650f032397420000054"},"cityName":"Turbok","districts":[{"name":"KTNP"},{"name":"SANR"},{"name":"AYHE"}]}]
