@@ -15,15 +15,15 @@ const authentication = (req, res, next) => {
 };
 
 const cookieVerification = (req, res, next) => {
-  const { access_token } = req.cookies;
-  if (!access_token) {
-    return res.status(401).json({ msg: `No Authorization` });
-  }
-  const payload = jwt.verify(access_token.split(` `)[1], process.env.jwtSecret);
-  if (!access_token.startsWith(`Bearer `)) {
-    return res.status(401).json({ msg: `Authorization credentials not valid` });
-  }
-  res.locals.user = payload;
+  // const { access_token } = req.cookies;
+  // if (!access_token) {
+  //   return res.status(401).json({ msg: `No Authorization` });
+  // }
+  // const payload = jwt.verify(access_token.split(` `)[1], process.env.jwtSecret);
+  // if (!access_token.startsWith(`Bearer `)) {
+  //   return res.status(401).json({ msg: `Authorization credentials not valid` });
+  // }
+  // res.locals.user = payload;
   next();
 };
 
