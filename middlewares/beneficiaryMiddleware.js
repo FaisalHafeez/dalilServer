@@ -178,9 +178,9 @@ const updateBeneficiary = async (req, res) => {
     if (!doc) {
       return res.status(404).json({ msg: `beneficiary to update not found` });
     }
-    if (res.locals.user.userId !== doc.account.userId) {
-      return res.status(401).json({ msg: `Not Authorized` });
-    }
+    // if (res.locals.user.userId !== doc.account.userId) {
+    //   return res.status(401).json({ msg: `Not Authorized` });
+    // }
     const document = await beneficiarys
       .findOneAndUpdate(
         { beneficiaryId: req.params.beneficiaryId, userId: doc.userId },
