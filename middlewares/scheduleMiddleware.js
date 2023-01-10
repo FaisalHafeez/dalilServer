@@ -133,6 +133,115 @@ const updateSchedule = async (req, res) => {
   }
 };
 
+// get schedules for doctor MP-GAi9126
+const allDoctorSchedule = async (req, res) => {
+  try {
+    const doctorIdQP = req.params.doctorId;
+
+    let hasMore = true;
+    let query = {};
+    query['$and']=[];
+
+    query["$and"].push({"doctorId": {$eq: doctorIdQP}});
+    
+    // let objectCount = 0;    
+    // objectCount = await schedule.aggregate([
+    //   {
+    //     $lookup: {
+    //       from: `medicalcenters`,
+    //       localField: `medicalCenterId`,
+    //       foreignField: `medicalCenterId`,
+    //       as: `medicalCenterObject`,
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: `doctors`,
+    //       localField: `doctorId`,
+    //       foreignField: `doctorId`,
+    //       as: `doctorObject`,
+    //     },
+    //   },
+    //   { $match: { 
+    //     $and: query["$and"]
+    //    }
+    //   },
+    //   // {
+    //   //   $group: {
+    //   //     _id: '$age',
+    //   //     count: { $sum: 1 }
+    //   //   }
+    //   // }
+    //   {
+    //     $sort: sortByQP_
+    //   },
+    //   {
+    //     $count: "objectCount"
+    //   }
+    // ]);
+
+    documents = await schedule.aggregate([
+      {
+        $lookup: {
+          from: `medicalcenters`,
+          localField: `medicalCenterId`,
+          foreignField: `medicalCenterId`,
+          as: `medicalCenterObject`,
+        },
+      },
+      {
+        $lookup: {
+          from: `doctors`,
+          localField: `doctorId`,
+          foreignField: `doctorId`,
+          as: `doctorObject`,
+        },
+      },
+      { $match: { 
+        $and: query["$and"]
+        }
+      },
+      { $group:
+        {
+          _id: "$medicalCenterId",
+          medicalCenterId: {$first: "$medicalCenterId"},
+          medicalCenterName: {$first: "$medicalCenterObject.name"},
+          scheduleList: { $push: "$$ROOT"}
+        }
+      }
+    ]);
+
+
+    documents.forEach((document) => {
+      document.medicalCenterName = document.medicalCenterName[0];
+      // document.medicalCenterId = document.medicalCenterId[0];
+      document.scheduleList.forEach((document) => {
+        document.medicalCenterObject = document.medicalCenterObject[0]
+        document.doctorObject = document.doctorObject[0]
+      })
+    });
+    let count = documents.length
+
+    let msg = "good"
+    if (documents.length === 0){
+      msg = "list is empty change your query";
+    }
+    const responseBody = {
+      codeStatus: "200",
+      message: msg,
+      data: {
+        objectCount: count,
+        objectArray: documents
+      }
+    };
+
+    res.status(200).json({...responseBody});
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: error.message });
+  }
+};
+
 const specificSchedule = async (req, res) => {
   try {
     const document = await schedule.findOne(req.params).lean();
@@ -409,6 +518,7 @@ const deleteSchedule = async (req, res) => {
 module.exports = {
   createSchedule,
   updateSchedule,
+  allDoctorSchedule,
   specificSchedule,
   allSchedule,
   deleteSchedule,

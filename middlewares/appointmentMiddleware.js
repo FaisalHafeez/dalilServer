@@ -207,9 +207,7 @@ const allAppointments = async (req, res) => {
     if(pendingQP){
       bookingStatusQP.push("pending");
     }
-
-
-  //   const limit = Number(limitQuery);
+    
   //   if (toDate) {
   //     const dateMilliseconds = new Date(toDate).valueOf();
   //     if (!dateMilliseconds) {

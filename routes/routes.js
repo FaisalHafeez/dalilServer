@@ -35,6 +35,7 @@ const {
 const {
   createSchedule,
   updateSchedule,
+  allDoctorSchedule,
   specificSchedule,
   allSchedule,
   deleteSchedule,
@@ -129,6 +130,11 @@ router
   .get(authentication, singleDoctor)
   .patch(authentication, updateDoctor)
   .delete(authentication, deleteDoctor);
+
+// routes for doctor
+router
+  .route(`/v1/doctors/:doctorId/schedules`)
+  .get(authentication, allDoctorSchedule);
 
 // routes for medicalCenters
 router
