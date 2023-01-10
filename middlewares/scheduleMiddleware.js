@@ -370,9 +370,13 @@ const allSchedule = async (req, res) => {
       count = objectCount[0].objectCount
     }
 
+    let msg = "good"
+    if (documents.length === 0){
+      msg = "list is empty change your query"
+    }
     const responseBody = {
       codeStatus: "200",
-      message: "good",
+      message: msg,
       data: {
         objectCount: count,
         hasMore,
