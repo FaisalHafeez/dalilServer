@@ -153,7 +153,7 @@ const singleBeneficiary = async (req, res) => {
     }
 
     if (res.locals.user.userId !== document.account.userId) {
-      return res.status(401).json({ msg: `Not Authorized` });
+      return res.status(401).json({ msg: `Not Authorized for this user` });
     }
 
     document.birthdate = document.birthdate.toLocaleDateString("en-GB");
