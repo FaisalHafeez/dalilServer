@@ -7,7 +7,8 @@ const authentication = (req, res, next) => {
   }
   const auth = req.headers.authorization;
   const payload = jwt.verify(auth.split(` `)[1], process.env.jwtSecret);
-  res.locals.id = payload._id;
+  // res.locals.id = payload._id;
+  res.locals.user = payload;
   if (!auth.startsWith(`Bearer `) || !payload) {
     return res.status(401).json({ msg: `Authorization credentials (token) not valid` });
   }

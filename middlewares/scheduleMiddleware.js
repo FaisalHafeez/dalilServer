@@ -156,7 +156,7 @@ const allSchedule = async (req, res) => {
     const medicalCenterIdQP = req.query.medicalCenterId;
     const sortByQP = req.query.sortBy;
     const specialtyQP = req.query.specialty;
-    const startAfterObjectQP = req.query.starting_after_object;
+    const starting_after_objectQP = req.query.starting_after_object;
     const timeslotQP = req.query.timeSlot;
 
     let limitQP = req.query.limit;
@@ -213,19 +213,19 @@ const allSchedule = async (req, res) => {
       // console.log(sortByQP);
       sortByQP_ = {"doctorId": 1, "scheduleId": 1};
 
-      if (startAfterObjectQP){
-        query["$and"].push({"doctorId": {$gt: startAfterObjectQP}});
+      if (starting_after_objectQP){
+        query["$and"].push({"doctorId": {$gt: starting_after_objectQP}});
       }
     }else if(sortByQP === "medicalCenter"){
       // console.log(sortByQP);
       sortByQP_ = {"medicalCenterId": 1, "scheduleId": 1};
-      if (startAfterObjectQP){
-        query["$and"].push({"medicalCenterId": {$gt: startAfterObjectQP}});
+      if (starting_after_objectQP){
+        query["$and"].push({"medicalCenterId": {$gt: starting_after_objectQP}});
       }
     }else{
       sortByQP_ = {"scheduleId": 1};
-      if (startAfterObjectQP){
-        query["$and"].push({"scheduleId": {$gt: startAfterObjectQP}});
+      if (starting_after_objectQP){
+        query["$and"].push({"scheduleId": {$gt: starting_after_objectQP}});
       }
     }
     
@@ -326,7 +326,7 @@ const allSchedule = async (req, res) => {
           document.medicalCenterObject = document.medicalCenterObject[0]
         });
 
-        if (startAfterObjectQP){
+        if (starting_after_objectQP){
           query["$and"].pop();
         }
         objectCount = await schedule.aggregate([
@@ -372,7 +372,8 @@ const allSchedule = async (req, res) => {
 
     let msg = "good"
     if (documents.length === 0){
-      msg = "list is empty change your query"
+      msg = "list is empty change your query";
+      hasMore = false;
     }
     const responseBody = {
       codeStatus: "200",

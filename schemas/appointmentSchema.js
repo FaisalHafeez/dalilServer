@@ -6,18 +6,9 @@ const appointmentSchema = mongoose.Schema({
   // appointmentId: {
   //   type: String,
   // },
-  appointmentId: mongoose.ObjectId,
-  scheduleId: {
+  appointmentId: mongoose.ObjectId,  
+  appointmentStatus: {
     type: String,
-    required: [true, `please provide valid schedule id`],
-  },
-  medicalCenterId: {
-    type: String,
-    required: [true, `please provide valid medicalCenter id`],
-  },
-  doctorId: {
-    type: String,
-    required: [true, `please provide valid doctor id`],
   },
   patient: {
     userId: {
@@ -41,43 +32,26 @@ const appointmentSchema = mongoose.Schema({
       required: [true, `please provide valid patientRelationship`],
     },
   },
-  appointmentStatus: {
+  scheduleId: {
     type: String,
+    required: [true, `please provide valid schedule id`],
   },
+  medicalCenterId: {
+    type: String,
+    required: [true, `please provide valid medicalCenter id`],
+  },
+  doctorId: {
+    type: String,
+    required: [true, `please provide valid doctor id`],
+  },  
   notes: String,
-  images: String,
+  medicalCenterObject: Object,
+  doctorObject: Object,
+  scheduleObject: Object,
   userId: {
     type: String,
     required: [true, `please provide valid userId`],
   },
- 
-  //   type: Array,
-  // },
-  // medicalcenter: {
-  //   medicalCenterId: {
-  //     type: String,
-  //   },
-  //   name: {
-  //     type: String,
-  //   },
-  //   city: {
-  //     type: String,
-  //   },
-  //   district: {
-  //     type: String,
-  //   },
-  //   description: {
-  //     type: String,
-  //   },
-  //   address: {
-  //     type: String,
-  //   },
-  //   phoneNumber: Array,
-  //   email: String,
-  //   facebookLink: String,
-  //   googleMaplink: String,
-  //   website: String,
-  // },
   dateCreated: { type: Date },
   lastUpdateDate: {
     type: Date,
