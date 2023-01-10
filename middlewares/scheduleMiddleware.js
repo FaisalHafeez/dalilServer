@@ -165,6 +165,8 @@ const allSchedule = async (req, res) => {
       if (limitQP > 100 || limitQP < 1) {
         limitQP = 30;
       }
+    }else{
+      limitQP = 30;
     }
 
     let hasMore = true;
@@ -182,7 +184,7 @@ const allSchedule = async (req, res) => {
     }
 
     if(cityQP){
-      // console.log(cityQP);
+      console.log(cityQP);
       query["$and"].push({"medicalCenterObject.city": {$eq: cityQP}});
     }
 
@@ -269,12 +271,6 @@ const allSchedule = async (req, res) => {
             $and: query["$and"]
            }
           },
-          // {
-          //   $group: {
-          //     _id: '$age',
-          //     count: { $sum: 1 }
-          //   }
-          // }
           {
             $sort: sortByQP_
           },
@@ -283,6 +279,7 @@ const allSchedule = async (req, res) => {
           }
         ]);        
 
+        // console.log(documents[0])
         for (const key in sortByQP_) {
           sortByQP_[key] = sortByQP_[key] *-1;
           // console.log(`obj.${key} = ${sortByQP_[key]}`);
@@ -367,221 +364,17 @@ const allSchedule = async (req, res) => {
           }
         ]);
     }
-    
-    // if (toDate) {
-    //   const dateMilliseconds = new Date(toDate).valueOf();
-    //   if (!dateMilliseconds) {
-    //     return res.status(200).json({ msg: `Invalid date inputed` });
-    //   }
-    //   const document = await appointment.find({
-    //     dateCreatedMilliSeconds: { $lte: dateMilliseconds },
-    //   });
-    //   const documents = await appointment
-    //     .find({
-    //       dateCreatedMilliSeconds: { $lte: dateMilliseconds },
-    //     })
-    //     .limit(limit ? limit : 30);
-    // if (documents.length === 0) {
-    //   return res.status(404).json({ msg: `appointments not found` });
-    // }
-    // return res.status(200).json({
-    //   documents,
-    //     objectCount: document.length,
-    //     hasMore: document.length > documents.length ? true : false,
-    //   });
-    // }
-    // if (fromDate) {
-    //   const dateMilliseconds = new Date(toDate).valueOf();
-    //   if (!dateMilliseconds) {
-    //     return res.status(200).json({ msg: `Invalid date inputed` });
-    //   }
-    //   const document = await appointment.find({
-    //     dateCreatedMilliSeconds: { $gte: dateMilliseconds },
-    //   });
-    //   const documents = await appointment
-    //     .find({
-    //       dateCreatedMilliSeconds: { $gte: dateMilliseconds },
-    //     })
-    //     .limit(limit ? limit : 30);
-    //   if (documents.length === 0) {
-    //     return res.status(404).json({ msg: `appointments not found` });
-    //   }
-    //   return res.status(200).json({
-    //     documents,
-    //     objectCount: document.length,
-    //     hasMore: document.length > documents.length ? true : false,
-    //   });
-    // }
-    // if (sortBy) {
-    //   if (sortBy === "doctorId") {
-    //     const alldocument = await schedule
-    //       .find({})
-    //       .sort({ "doctor.doctorId": 1 });
-    //     if (alldocument.length === 0) {
-    //       return res.status(404).json({ msg: `schedules not found` });
-    //     }
-    //     const documents = await schedule
-    //       .find({})
-    //       .limit(limit ? limit : 0)
-    //       .sort({ "doctor.doctorId": 1 });
-
-    //     return res.status(200).json({
-    //       documents,
-    //       objectCount: alldocument.length,
-    //       hasMore: alldocument.length > documents.length ? true : false,
-    //     });
-    //   } else if (sortBy === "medicalCenterId") {
-    //     const alldocument = await schedule
-    //       .find({})
-    //       .sort({ "medicalcenter.medicalCenterId": 1 });
-    //     if (alldocument.length === 0) {
-    //       return res.status(404).json({ msg: `schedules not found` });
-    //     }
-    //     const documents = await schedule
-    //       .find({})
-    //       .limit(limit ? limit : 0)
-    //       .sort({ "medicalcenter.medicalCenterId": 1 });
-    //     return res.status(200).json({
-    //       documents,
-    //       objectCount: alldocument.length,
-    //       hasMore: alldocument.length > documents.length ? true : false,
-    //     });
-    //   } else {
-    //     return res
-    //       .status(404)
-    //       .json({ msg: `Check your inputted sortBy value` });
-    //   }
-    // }
-    // if (specialtyQuery) {
-    //   const alldocument = await schedule.find({
-    //     "doctor.specialty": specialtyQuery,
-    //   });
-    //   if (alldocument.length === 0) {
-    //     return res.status(404).json({ msg: `schedules not found` });
-    //   }
-    //   const documents = await schedule
-    //     .find({
-    //       "doctor.specialty": specialtyQuery,
-    //     })
-    //     .limit(limit ? limit : 0);
-    //   return res.status(200).json({
-    //     documents,
-    //     objectCount: alldocument.length,
-    //     hasMore: alldocument.length > documents.length ? true : false,
-    //   });
-    // }
-    // if (medicalCenterIdQuery) {
-    //   const alldocument = await schedule.find({
-    //     "medicalcenter.medicalCenterId": medicalCenterIdQuery,
-    //   });
-    //   if (alldocument.length === 0) {
-    //     return res.status(404).json({ msg: `schedules not found` });
-    //   }
-    //   const documents = await schedule
-    //     .find({
-    //       "medicalcenter.medicalCenterId": medicalCenterIdQuery,
-    //     })
-    //     .limit(limit ? limit : 0);
-    //   return res.status(200).json({
-    //     documents,
-    //     objectCount: alldocument.length,
-    //     hasMore: alldocument.length > documents.length ? true : false,
-    //   });
-    // }
-    // if (city) {
-    //   const alldocument = await schedule.find({
-    //     "medicalcenter.city": city,
-    //   });
-    //   if (alldocument.length === 0) {
-    //     return res.status(404).json({ msg: `schedules not found` });
-    //   }
-    //   const documents = await schedule
-    //     .find({
-    //       "medicalcenter.city": city,
-    //     })
-    //     .limit(limit ? limit : 0);
-    //   return res.status(200).json({
-    //     documents,
-    //     objectCount: alldocument.length,
-    //     hasMore: alldocument.length > documents.length ? true : false,
-    //   });
-    // }
-    // if (doctorId) {
-    //   const alldocument = await schedule.find({
-    //     "doctor.doctorId": doctorId,
-    //   });
-    //   if (alldocument.length === 0) {
-    //     return res.status(404).json({ msg: `schedules not found` });
-    //   }
-    //   const documents = await schedule
-    //     .find({
-    //       "doctor.doctorId": doctorId,
-    //     })
-    //     .limit(limit ? limit : 0);
-    //   return res.status(200).json({
-    //     documents,
-    //     objectCount: alldocument.length,
-    //     hasMore: alldocument.length > documents.length ? true : false,
-    //   });
-    // }
-    // if (scheduleIdquery) {
-    //   const alldocument = await schedule.find({
-    //     sid: {
-    //       $gt: Number(scheduleIdquery.split(`-`)[1]),
-    //     },
-    //   });
-    //   if (alldocument.length === 0) {
-    //     return res.status(404).json({ msg: `schedules not found` });
-    //   }
-    //   const documents = await schedule
-    //     .find({
-    //       scheduleId: scheduleIdquery,
-    //     })
-    //     .limit(limit ? limit : 0);
-    //   return res.status(200).json({
-    //     documents,
-    //     objectCount: alldocument.length,
-    //     hasMore: alldocument.length > documents.length ? true : false,
-    //   });
-    // }
-    // if (timeslot) {
-    //   const alldocument = await schedule.find({
-    //     timeslot: timeslot,
-    //   });
-    //   if (alldocument.length === 0) {
-    //     return res.status(404).json({ msg: `schedules not found` });
-    //   }
-    //   const documents = await schedule
-    //     .find({
-    //       timeslot: timeslot,
-    //     })
-    //     .limit(limit ? limit : 0);
-    //   return res.status(200).json({
-    //     documents,
-    //     objectCount: alldocument.length,
-    //     hasMore: alldocument.length > documents.length ? true : false,
-    //   });
-    // }
-    // const alldocument = await schedule.find({});
-    // if (alldocument.length === 0) {
-    //   return res.status(404).json({ msg: `schedules not found` });
-    // }
-    // const documents = await schedule.find({}).limit(limit ? limit : 0);
-    
-    // console.log(documents[1].startDate.toISOString().split('T')[0]);
-
-    // documents.forEach((document) => {      
-    //   document.startDate =  document.startDate.toISOString().split('T')[0];
-    //   document.endDate =  document.endDate.toISOString().split('T')[0];
-    //   document.dateCreated =  document.dateCreated.toISOString().split('T')[0];
-    // });
-
+    let count = 0
+    // console.log(objectCount[0].objectCount)
+    if(objectCount[0] !== undefined){
+      count = objectCount[0].objectCount
+    }
 
     const responseBody = {
       codeStatus: "200",
       message: "good",
       data: {
-        objectCount: objectCount[0].objectCount,
+        objectCount: count,
         hasMore,
         objectArray: documents
       }
