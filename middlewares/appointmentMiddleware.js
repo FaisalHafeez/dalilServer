@@ -177,6 +177,118 @@ const specificAppointment = async (req, res) => {
   }
 };
 
+const doctorAppointmentSummaries = async (req, res) => {
+  try {
+    const bookedQP = req.query.booked ?? "true";
+    // const cancelledQP = req.query.cancelled ?? "true";
+    // const rejectedQP = req.query.rejected ?? "true";
+    // const completedQP = req.query.completed ?? "true";
+    // const pendingQP = req.query.pending ?? "true";
+    // const starting_after_objectQP = req.query.starting_after_object;
+    // const limitQP = Number(req.query.limit) ?? 30;
+
+    const todaysDate = new Date('January 12, 2023');
+    const futureDate = new Date('January 12, 2023');
+    futureDate.setDate(futureDate.getDate() + 10);
+
+    let bookingStatusQP = [];
+    if(bookedQP === "true")bookingStatusQP.push("booked");
+    // if(cancelledQP === "true")bookingStatusQP.push("cancelled");
+    // if(rejectedQP === "true")bookingStatusQP.push("rejected");
+    // if(completedQP === "true")bookingStatusQP.push("completed");
+    // if(pendingQP === "true")bookingStatusQP.push("pending");
+
+
+    let query = {};
+    query['$and']=[];
+    query["$and"].push({"doctorId": {$eq: req.params.doctorId}});
+    query["$and"].push({"appointmentDate": {$gte: todaysDate.toISOString().split('T')[0]}});
+    query["$and"].push({"appointmentDate": {$lte: futureDate.toISOString().split('T')[0]}});
+
+    // yourDate.toISOString().split('T')[0]
+
+    documents = await appointment.aggregate([
+      {
+        $lookup: {
+          from: `medicalcenters`,
+          localField: `medicalCenterId`,
+          foreignField: `medicalCenterId`,
+          as: `medicalCenterObject`,
+        },
+      },
+      {
+        $lookup: {
+          from: `doctors`,
+          localField: `doctorId`,
+          foreignField: `doctorId`,
+          as: `doctorObject`,
+        },
+      },
+      // { $match: { 
+      //   $and: query["$and"]
+      //   }
+      // },
+      { $group:
+        {
+          _id: "$medicalCenterId",
+          medicalCenterId: {$first: "$medicalCenterId"},
+          medicalCenterName: {$addToSet: "$medicalCenterObject.name"},
+          expectedVisits: {
+            $push: {
+              date: "$appointmentDate",
+              slot: "$timeslot"
+            },            
+          }
+        }
+      },
+      // { $group:
+      //   {
+      //     _id: null, uniqueValues: {$addToSet: "$expectedVisits.appointmentDate"}
+      //   }
+      // }
+    ]);
+
+    let objectCount = 0;
+    let hasMore = true;      
+    objectCount = await appointment.find(query,).countDocuments();
+    
+
+
+
+    // if (starting_after_objectQP) query["$and"].push({"appointmentId": {$gt: starting_after_objectQP}});
+    // documents = await appointment.find(query,).sort({appointmentId: 1}).limit(limitQP).lean();
+    // lastDocument = await appointment.findOne(query,).sort({appointmentId: -1}).lean();      
+    
+    // // console.log(lastDocument.appointmentId)
+    // documents.forEach((document) => {
+    //   if (document.appointmentId.equals(lastDocument.appointmentId)) hasMore = false;
+    // });
+
+
+    let msg = "good"
+    if (documents.length === 0){
+      msg = "list is empty change your query";
+      hasMore = false;
+    }
+
+    const responseBody = {
+      codeStatus: "200",
+      message: msg,
+      data: {
+        // objectCount: objectCount,
+        // hasMore,
+        objectArray: documents
+      }
+    };
+
+    res.status(200).json({...responseBody});
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: error.message });
+  }
+};
+
 // getting all appointments
 const allAppointments = async (req, res) => {
   try {
@@ -400,5 +512,6 @@ module.exports = {
   createAppointment,
   updateAppointment,
   specificAppointment,
+  doctorAppointmentSummaries,
   allAppointments,
 };

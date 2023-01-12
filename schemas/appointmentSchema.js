@@ -6,7 +6,9 @@ const appointmentSchema = mongoose.Schema({
   // appointmentId: {
   //   type: String,
   // },
-  appointmentId: mongoose.ObjectId,  
+  appointmentId: mongoose.ObjectId,
+  appointmentDate: String,
+  timeslot: String,
   appointmentStatus: {
     type: String,
   },

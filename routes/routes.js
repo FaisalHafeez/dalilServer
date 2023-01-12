@@ -28,6 +28,7 @@ const {
   createAppointment,
   updateAppointment,
   specificAppointment,
+  doctorAppointmentSummaries,
   allAppointments,
 } = require(`../middlewares/appointmentMiddleware`);
 
@@ -130,6 +131,11 @@ router
   .get(authentication, singleDoctor)
   .patch(authentication, updateDoctor)
   .delete(authentication, deleteDoctor);
+
+// routes for doctor
+router
+  .route(`/v1/doctors/:doctorId/appointmentSummaries`)
+  .get(authentication, doctorAppointmentSummaries);
 
 // routes for doctor
 router
