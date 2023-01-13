@@ -187,9 +187,11 @@ const doctorAppointmentSummaries = async (req, res) => {
     // const starting_after_objectQP = req.query.starting_after_object;
     // const limitQP = Number(req.query.limit) ?? 30;
 
+    let addDates = 10;
+
     const todaysDate = new Date('January 12, 2023');
     const futureDate = new Date('January 12, 2023');
-    futureDate.setDate(futureDate.getDate() + 10);
+    futureDate.setDate(futureDate.getDate() + addDates);
 
     let bookingStatusQP = [];
     if(bookedQP === "true")bookingStatusQP.push("booked");
@@ -202,8 +204,8 @@ const doctorAppointmentSummaries = async (req, res) => {
     let query = {};
     query['$and']=[];
     query["$and"].push({"doctorId": {$eq: req.params.doctorId}});
-    query["$and"].push({"appointmentDate": {$gte: todaysDate.toISOString().split('T')[0]}});
-    query["$and"].push({"appointmentDate": {$lte: futureDate.toISOString().split('T')[0]}});
+    // query["$and"].push({"appointmentDate": {$gte: todaysDate.toISOString().split('T')[0]}});
+    // query["$and"].push({"appointmentDate": {$lte: futureDate.toISOString().split('T')[0]}});
 
     // yourDate.toISOString().split('T')[0]
 
@@ -224,23 +226,36 @@ const doctorAppointmentSummaries = async (req, res) => {
           as: `doctorObject`,
         },
       },
-      // { $match: { 
-      //   $and: query["$and"]
-      //   }
-      // },
+      { $match: { 
+        $and: query["$and"]
+        }
+      },
       { $group:
         {
           _id: "$medicalCenterId",
           medicalCenterId: {$first: "$medicalCenterId"},
-          medicalCenterName: {$addToSet: "$medicalCenterObject.name"},
+          medicalCenterName: {$first: "$medicalCenterObject.name"},
+          appointmentDates: { $addToSet: "$appointmentDate"},
           expectedVisits: {
             $push: {
               date: "$appointmentDate",
-              slot: "$timeslot"
-            },            
+              slot: "$timeslot",           
+            },          
           }
         }
       },
+      { $unwind: "$medicalCenterName" },
+      // { $unwind: "$expectedVisits" },
+      // {
+      //   $group:
+      //     {
+      //       "_id": {
+      //         "expectedVisits": "$expectedVisits",
+      //         "medicalCenterName": "$medicalCenterName"
+      //       },
+      //       myCount: { $sum: 1 }
+      //     }
+      // },
       // { $group:
       //   {
       //     _id: null, uniqueValues: {$addToSet: "$expectedVisits.appointmentDate"}
@@ -248,12 +263,53 @@ const doctorAppointmentSummaries = async (req, res) => {
       // }
     ]);
 
+    templateObject = {
+      date: null,
+      morningSlot: 0,
+      afternoonSlot: 0,
+      eveningSlot: 0,
+    }
+
+    let dateArray = new Array();
+    let currentDate = todaysDate;
+    while (currentDate <= futureDate){      
+      dateArray.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // console.log(dateArray)
+
+
     let objectCount = 0;
     let hasMore = true;      
-    objectCount = await appointment.find(query,).countDocuments();
+    // objectCount = await appointment.find(query,).countDocuments();
     
 
-
+    // Creating the Body response
+    let theSummary = new Array();
+    for (let i = 0; i < documents.length; i++) {
+      let medicalCenterId = documents[i].medicalCenterId;
+      let medicalCenterName = documents[i].medicalCenterName;
+      let theSummaryDateResults = new Array();
+      for (let j = 0; j < dateArray.length; j++) {
+        let date = dateArray[j].toISOString().split('T')[0]
+        morningSlot = documents[i].expectedVisits.filter(element => element.date.toISOString().split('T')[0] === date  && element.slot === "morning").length;
+        afternoonSlot = documents[i].expectedVisits.filter(element => element.date.toISOString().split('T')[0] === date  && element.slot === "afternoon").length;
+        eveningSlot = documents[i].expectedVisits.filter(element => element.date.toISOString().split('T')[0] === date  && element.slot === "evening").length;
+        let datesResults = {
+          date: date,
+          morningSlot: morningSlot,
+          afternoonSlot: afternoonSlot,
+          eveningSlot: eveningSlot
+        };
+        theSummaryDateResults.push(datesResults);
+      }
+      theSummary.push({
+        medicalCenterId,
+        medicalCenterName,
+        expectedVisits: theSummaryDateResults
+      });
+    }
 
     // if (starting_after_objectQP) query["$and"].push({"appointmentId": {$gt: starting_after_objectQP}});
     // documents = await appointment.find(query,).sort({appointmentId: 1}).limit(limitQP).lean();
@@ -275,9 +331,9 @@ const doctorAppointmentSummaries = async (req, res) => {
       codeStatus: "200",
       message: msg,
       data: {
-        // objectCount: objectCount,
-        // hasMore,
-        objectArray: documents
+        objectCount: documents.length,
+        hasMore,
+        objectArray: theSummary
       }
     };
 
