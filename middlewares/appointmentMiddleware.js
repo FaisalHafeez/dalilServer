@@ -139,16 +139,18 @@ const specificAppointment = async (req, res) => {
     if (query["$and"].length === 0) {      
       objectCount = await appointment.find({},).countDocuments();
       if (starting_after_objectQP) query["$and"].push({appointmentId: {$gt: starting_after_objectQP}});
-      documents = await appointment.find({},).sort({appointmentId: 1}).limit(limitQP).lean();
-      lastDocument = await appointment.findOne(query,).sort({appointmentId: -1}).lean();
+      documents = await appointment.find({},).sort({appointmentId: 1, _id: 1}).limit(limitQP).lean();
+      lastDocument = await appointment.findOne(query,).sort({appointmentId: -1, _id: -1}).lean();
         
     }else {      
       objectCount = await appointment.find(query,).countDocuments();      
       if (starting_after_objectQP) query["$and"].push({"appointmentId": {$gt: starting_after_objectQP}});
-      documents = await appointment.find(query,).sort({appointmentId: 1}).limit(limitQP).lean();
-      lastDocument = await appointment.findOne(query,).sort({appointmentId: -1}).lean();      
+      documents = await appointment.find(query,).sort({appointmentId: 1, _id: 1}).limit(limitQP).lean();
+      lastDocument = await appointment.findOne(query,).sort({appointmentId: -1, _id: -1}).lean();      
     }
     // console.log(lastDocument.appointmentId)
+    console.log("length is " + documents.length)
+    // console.log(documents[0])
     documents.forEach((document) => {
       if (document.appointmentId.equals(lastDocument.appointmentId)) hasMore = false;
     });
@@ -263,13 +265,6 @@ const doctorAppointmentSummaries = async (req, res) => {
       // }
     ]);
 
-    templateObject = {
-      date: null,
-      morningSlot: 0,
-      afternoonSlot: 0,
-      eveningSlot: 0,
-    }
-
     let dateArray = new Array();
     let currentDate = todaysDate;
     while (currentDate <= futureDate){      
@@ -278,8 +273,8 @@ const doctorAppointmentSummaries = async (req, res) => {
     }
 
     // console.log(dateArray)
-
-
+    console.log(documents.length)
+    
     let objectCount = 0;
     let hasMore = true;      
     // objectCount = await appointment.find(query,).countDocuments();
