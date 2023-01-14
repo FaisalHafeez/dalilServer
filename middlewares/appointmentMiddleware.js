@@ -182,163 +182,134 @@ const specificAppointment = async (req, res) => {
 const doctorAppointmentSummaries = async (req, res) => {
   try {
     const bookedQP = req.query.booked ?? "true";
-    // const cancelledQP = req.query.cancelled ?? "true";
-    // const rejectedQP = req.query.rejected ?? "true";
-    // const completedQP = req.query.completed ?? "true";
-    // const pendingQP = req.query.pending ?? "true";
-    // const starting_after_objectQP = req.query.starting_after_object;
-    // const limitQP = Number(req.query.limit) ?? 30;
+    //! Done
+    //? Used MongoDB's $project and $group stages in the aggregate() pipeline to minimize the code and make it more performant.
+    let query = {
+      doctorId: req.params.doctorId,
+    };
 
-    let addDates = 10;
-
-    const todaysDate = new Date('January 12, 2023');
-    const futureDate = new Date('January 12, 2023');
-    futureDate.setDate(futureDate.getDate() + addDates);
-
-    let bookingStatusQP = [];
-    if(bookedQP === "true")bookingStatusQP.push("booked");
-    // if(cancelledQP === "true")bookingStatusQP.push("cancelled");
-    // if(rejectedQP === "true")bookingStatusQP.push("rejected");
-    // if(completedQP === "true")bookingStatusQP.push("completed");
-    // if(pendingQP === "true")bookingStatusQP.push("pending");
-
-
-    let query = {};
-    query['$and']=[];
-    query["$and"].push({"doctorId": {$eq: req.params.doctorId}});
-    // query["$and"].push({"appointmentDate": {$gte: todaysDate.toISOString().split('T')[0]}});
-    // query["$and"].push({"appointmentDate": {$lte: futureDate.toISOString().split('T')[0]}});
-
-    // yourDate.toISOString().split('T')[0]
-
-    documents = await appointment.aggregate([
-      {
-        $lookup: {
-          from: `medicalcenters`,
-          localField: `medicalCenterId`,
-          foreignField: `medicalCenterId`,
-          as: `medicalCenterObject`,
-        },
-      },
-      {
-        $lookup: {
-          from: `doctors`,
-          localField: `doctorId`,
-          foreignField: `doctorId`,
-          as: `doctorObject`,
-        },
-      },
-      { $match: { 
-        $and: query["$and"]
-        }
-      },
-      { $group:
-        {
-          _id: "$medicalCenterId",
-          medicalCenterId: {$first: "$medicalCenterId"},
-          medicalCenterName: {$first: "$medicalCenterObject.name"},
-          appointmentDates: { $addToSet: "$appointmentDate"},
-          expectedVisits: {
-            $push: {
-              date: "$appointmentDate",
-              slot: "$timeslot",           
-            },          
-          }
-        }
-      },
-      { $unwind: "$medicalCenterName" },
-      // { $unwind: "$expectedVisits" },
-      // {
-      //   $group:
-      //     {
-      //       "_id": {
-      //         "expectedVisits": "$expectedVisits",
-      //         "medicalCenterName": "$medicalCenterName"
-      //       },
-      //       myCount: { $sum: 1 }
-      //     }
-      // },
-      // { $group:
-      //   {
-      //     _id: null, uniqueValues: {$addToSet: "$expectedVisits.appointmentDate"}
-      //   }
-      // }
-    ]);
-
-    let dateArray = new Array();
-    let currentDate = todaysDate;
-    while (currentDate <= futureDate){      
-      dateArray.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
+    if (bookedQP === "true") {
+      query.bookingStatus = "booked";
     }
 
-    // console.log(dateArray)
-    console.log(documents.length)
-    
-    let objectCount = 0;
-    let hasMore = true;      
-    // objectCount = await appointment.find(query,).countDocuments();
-    
+    const documents = await appointment.aggregate([
+      {
+        //?$match stage to filter the documents based on the booked query parameter and doctorId parameter.
+        $match: query,
+      },
+      {
+        //? $lookup stages to join the appointment collection with medicalcenters and doctors collection.
+        $lookup: {
+          from: "medicalcenters",
+          localField: "medicalCenterId",
+          foreignField: "medicalCenterId",
+          as: "medicalCenterObject",
+        },
+      },
+      {
+        $lookup: {
+          from: "doctors",
+          localField: "doctorId",
+          foreignField: "doctorId",
+          as: "doctorObject",
+        },
+      },
 
-    // Creating the Body response
-    let theSummary = new Array();
-    for (let i = 0; i < documents.length; i++) {
-      let medicalCenterId = documents[i].medicalCenterId;
-      let medicalCenterName = documents[i].medicalCenterName;
-      let theSummaryDateResults = new Array();
-      for (let j = 0; j < dateArray.length; j++) {
-        let date = dateArray[j].toISOString().split('T')[0]
-        morningSlot = documents[i].expectedVisits.filter(element => element.date.toISOString().split('T')[0] === date  && element.slot === "morning").length;
-        afternoonSlot = documents[i].expectedVisits.filter(element => element.date.toISOString().split('T')[0] === date  && element.slot === "afternoon").length;
-        eveningSlot = documents[i].expectedVisits.filter(element => element.date.toISOString().split('T')[0] === date  && element.slot === "evening").length;
-        let datesResults = {
-          date: date,
-          morningSlot: morningSlot,
-          afternoonSlot: afternoonSlot,
-          eveningSlot: eveningSlot
-        };
-        theSummaryDateResults.push(datesResults);
-      }
-      theSummary.push({
-        medicalCenterId,
-        medicalCenterName,
-        expectedVisits: theSummaryDateResults
+      //?$project stage is used to select only the required fields from the documents. `
+      {
+        $project: {
+          medicalCenterId: "$medicalCenterId",
+          medicalCenterName: "$medicalCenterObject.name",
+          //? MAYBE (can be enabled in future if needed)
+          //* The appointmentDate field is already included in the $match stage, so it's not needed to be included again in the $project stage.
+          // appointmentDate: '$appointmentDate',
+          //* Same goes for $slot
+          // slot: '$slot'
+        },
+      },
+      {
+        $group: {
+          _id: {
+            medicalCenterId: "$medicalCenterId",
+            medicalCenterName: "$medicalCenterName",
+          },
+          dates: {
+            $push: {
+              date: "$appointmentDate",
+              slot: "$slot",
+            },
+          },
+        },
+      },
+      {
+        $unwind: "$dates",
+      },
+      {
+        $group: {
+          _id: {
+            medicalCenterId: "$_id.medicalCenterId",
+            medicalCenterName: "$_id.medicalCenterName",
+          },
+          expectedVisits: {
+            $push: {
+              date: "$dates.date",
+              morningSlot: {
+                $sum: {
+                  $cond: [{ $eq: ["$dates.slot", "morning"] }, 1, 0],
+                },
+              },
+              afternoonSlot: {
+                $sum: {
+                  $cond: [{ $eq: ["$dates.slot", "afternoon"] }, 1, 0],
+                },
+              },
+              eveningSlot: {
+                $sum: {
+                  $cond: [{ $eq: ["$dates.slot", "evening"] }, 1, 0],
+                },
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    if (documents.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No records found",
       });
     }
 
-    // if (starting_after_objectQP) query["$and"].push({"appointmentId": {$gt: starting_after_objectQP}});
-    // documents = await appointment.find(query,).sort({appointmentId: 1}).limit(limitQP).lean();
-    // lastDocument = await appointment.findOne(query,).sort({appointmentId: -1}).lean();      
-    
-    // // console.log(lastDocument.appointmentId)
-    // documents.forEach((document) => {
-    //   if (document.appointmentId.equals(lastDocument.appointmentId)) hasMore = false;
-    // });
+    let objectCount = documents.length;
+    let hasMore = false;
 
+    let theSummary = documents.map((doc) => {
+      return {
+        medicalCenterId: doc._id.medicalCenterId,
+        medicalCenterName: doc._id.medicalCenterName,
+        expectedVisits: doc.expectedVisits,
+      };
+    });
 
-    let msg = "good"
-    if (documents.length === 0){
-      msg = "list is empty change your query";
-      hasMore = false;
-    }
-
-    const responseBody = {
-      codeStatus: "200",
-      message: msg,
+    return res.json({
+      statusCode: 200,
+      message: "success",
       data: {
-        objectCount: documents.length,
+        objectCount,
         hasMore,
-        objectArray: theSummary
-      }
-    };
-
-    res.status(200).json({...responseBody});
-
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ msg: error.message });
+        objectArray: theSummary,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      statusCode: 500,
+      message: "Server Error",
+    });
   }
 };
+
 
 // getting all appointments
 const allAppointments = async (req, res) => {
